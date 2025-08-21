@@ -17,16 +17,22 @@ MAIN_SRC = main.cpp
 MAIN_OBJ = $(OBJ_DIR)/main.o
 EXEC = shop
 
+# Shared library dependencies
+DATASTRUCTURES_LIB = $(LIB_DIR)/libdataStructures.so
+EVENTLOOP_LIB = $(LIB_DIR)/libeventLoop.so
+
 .PHONY: all clean dataStructures eventLoop
 
-all: dataStructures eventLoop $(EXEC)
+all: $(EXEC)
 
 # Build dataStructures library
-dataStructures:
+dataStructures: $(DATASTRUCTURES_LIB)
+$(DATASTRUCTURES_LIB):
 	$(MAKE) -C dataStructures -f dataStructures.mk
 
 # Build eventLoop library
-eventLoop:
+eventLoop: $(EVENTLOOP_LIB)
+$(EVENTLOOP_LIB):
 	$(MAKE) -C eventLoop -f eventLoop.mk
 
 # Create object directory if it doesn't exist
@@ -41,9 +47,9 @@ $(MAIN_OBJ): $(MAIN_SRC) | $(OBJ_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Link everything
-$(EXEC): $(MAIN_OBJ) $(OBJECTS)
-	$(CC) $^ $(LDFLAGS) -o $@
+# Link everything, ensure libraries are built first
+$(EXEC): $(MAIN_OBJ) $(OBJECTS) $(DATASTRUCTURES_LIB) $(EVENTLOOP_LIB)
+	$(CC) $(MAIN_OBJ) $(OBJECTS) $(LDFLAGS) -o $@
 
 clean:
 	$(MAKE) -C dataStructures -f dataStructures.mk clean
